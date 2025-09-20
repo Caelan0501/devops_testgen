@@ -1,2 +1,1 @@
-print ("Program Running")
-exit(0)
+print("Program Running")
