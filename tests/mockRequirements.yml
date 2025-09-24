@@ -1,0 +1,102 @@
+function: calculate_discount
+
+inputs:
+  - name: username
+    type: string
+    restrictions:
+      length:
+        min: 5
+        max: 10
+      allowed_chars: alphabetic
+      forbidden_chars: ["-", "_"]
+
+  - name: age
+    type: integer
+    restrictions:
+      min: 18
+
+  - name: user_status
+    type: enum
+    values: [New, Returning]
+
+  - name: rewards_member_status
+    type: enum
+    values: [Bronze, Silver, Gold]
+
+  - name: season_bought
+    type: enum
+    values: [Winter, Spring, Summer, Fall]
+
+  - name: product_category
+    type: enum
+    values: [Unknown, Electronics]
+
+  - name: rating
+    type: integer
+    restrictions:
+      min: 1
+      max: 10
+
+outputs:
+  - name: error_messages
+    type: list
+    description: >
+      Error messages for invalid username, age, and rating.
+
+  - name: discount
+    type: integer
+    description: Discount percentage (0 if no discount)
+
+rules:
+  - description: New users cannot get discounts regardless of reward status, product, or season
+    condition:
+      user_status: New
+    result:
+      discount: 0
+
+  - description: No discount if product category is unknown
+    condition:
+      product_category: Unknown
+    result:
+      discount: 0
+
+  - description: Summer special
+    condition:
+      season_bought: Summer
+      user_status: Returning
+      rewards_member_status: Gold
+      product_category: Electronics
+    result:
+      discount: 15
+
+  - description: Spring special
+    condition:
+      season_bought: Spring
+      user_status: Returning
+      rewards_member_status: Bronze
+      product_category: Electronics
+    result:
+      discount: 10
+
+  - description: Winter special
+    condition:
+      season_bought: Winter
+      user_status: Returning
+      rewards_member_status: Gold
+      product_category: Electronics
+    result:
+      discount: 25
+
+  - description: Fall special
+    condition:
+      season_bought: Fall
+      user_status: Returning
+      rewards_member_status: Silver
+      product_category: Electronics
+    result:
+      discount: 15
+
+  - description: All other cases get no discount
+    condition: {}
+    result:
+      discount: 0

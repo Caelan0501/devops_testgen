@@ -1,0 +1,31 @@
+---
+title: Equivalence_Partition
+---
+classDiagram
+    class ValuePartition{
+        +String name
+        +String Type
+    }
+    ValuePartition <|-- StringPartition
+    class StringPartition{
+        +int minimumLength
+        +int maxLength
+        +enum allowed_chars
+        +char[] forbidden_chars
+    }
+
+    ValuePartition <|-- NumberPartition
+    class NumberPartition{
+        +float min
+        +float max
+    }
+
+    ValuePartition <|-- EnumPartition
+    class EnumPartition{
+        +String[] values
+    }
+
+    ValuePartition <|-- BooleanPartition
+    class BooleanPartition{
+    }
+
