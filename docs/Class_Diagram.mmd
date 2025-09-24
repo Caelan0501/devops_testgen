@@ -9,20 +9,27 @@ classDiagram
     ValuePartition <|-- StringPartition
     class StringPartition{
         +int minimumLength
+        +string minErrorMsg
         +int maxLength
+        +string maxErrorMsg
         +enum allowed_chars
-        +char[] forbidden_chars
+        +string notAllowedCharErrorMsg
+        +List~char~ forbidden_chars
+        +string forbidden_charsErrorMsg
     }
 
     ValuePartition <|-- NumberPartition
     class NumberPartition{
         +float min
+        +string minErrorMsg
         +float max
+        +string maxErrorMsg
     }
 
     ValuePartition <|-- EnumPartition
     class EnumPartition{
-        +String[] values
+        +List~String~ values
+        +string UnknownValueErrorMsg
     }
 
     ValuePartition <|-- BooleanPartition

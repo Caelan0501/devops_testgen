@@ -1,8 +1,41 @@
 import random
 import test.File_to_Test
+from abc import ABC, abstractmethod
+from enum import Enum
+
+class Allowed_chars(Enum):
+    alpha = 1
+    alnum = 2
+    digit = 3
+
+class ValuePartition(ABC):
+    @abstractmethod
+    def __init__(self, name, type):
+        self.name = name
+        self.type = type
+
+class StringPartition(ValuePartition):
+    def __init__(self, name, type, allowed_chars = Allowed_chars.alnum, forbidden_chars = None):
+        super().__init__(name, type)
+        self.allowed_chars = allowed_chars
+        self.forbidden_chars = forbidden_chars
+
+class NumberPartition(ValuePartition):
+    def __init__(self, name, type, min_val = None, max_val = None):
+        super().__init__(name, type)
+        self.min_val = min_val
+        self.max_val = max_val
+
+class EnumPartition(ValuePartition):
+    def __init__(self, name, type, values):
+        super().__init__(name, type)
+        self.values = values
+
+class BooleanPartition(ValuePartition):
+    def __init__(self, name, type):
+        super().__init__(name, type)
 
 def main():
-
     print("How many inputs will do you have?")
     numInputs = input()
     for i in range(int(numInputs)):
