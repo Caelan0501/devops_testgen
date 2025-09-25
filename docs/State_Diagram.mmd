@@ -2,14 +2,8 @@
 title: Overview
 ---
 stateDiagram-v2
-    [*] --> Gather_Arguments
-
-    Gather_Arguments --> Gather_Arguments_types
-
-    Gather_Arguments_types --> bool
-    Gather_Arguments_types --> int
-    Gather_Arguments_types --> float
-    Gather_Arguments_types --> double
-    Gather_Arguments_types --> string
-    Gather_Arguments_types --> Enum
+    [*] --> Gather_information
+    Gather_information --> Develop_Test_Cases
+    Develop_Test_Cases --> Generate_Test_Cases
+    Generate_Test_Cases --> [*]
 

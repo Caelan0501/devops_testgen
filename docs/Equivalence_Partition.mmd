@@ -2,10 +2,21 @@
 title: Equivalence_Partition
 ---
 classDiagram
+    PartitionCollection o-- ValuePartition
+    class PartitionCollection{
+        +List~ValuePartition~ Collection
+        +int numInputs
+        +int numTestCases
+        +String generateValidInput()
+        +append(ValuePartition)
+        +remove(ValuePartition)
+    }
+
     class ValuePartition{
         +String name
         +String Type
     }
+
     ValuePartition <|-- StringPartition
     class StringPartition{
         +int minimumLength
@@ -16,6 +27,7 @@ classDiagram
         +string notAllowedCharErrorMsg
         +List~char~ forbidden_chars
         +string forbidden_charsErrorMsg
+        +__init__()
     }
 
     ValuePartition <|-- NumberPartition
@@ -24,15 +36,18 @@ classDiagram
         +string minErrorMsg
         +float max
         +string maxErrorMsg
+        +__init__()
     }
 
     ValuePartition <|-- EnumPartition
     class EnumPartition{
         +List~String~ values
         +string UnknownValueErrorMsg
+        +__init__()
     }
 
     ValuePartition <|-- BooleanPartition
     class BooleanPartition{
+        +__init__()
     }
 
