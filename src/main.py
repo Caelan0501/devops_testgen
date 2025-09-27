@@ -1,6 +1,26 @@
 import os
 import csv
 
+class TestCase:
+    def __init__(self, name, module_name, function_name, args, test_arg, condition, expected):
+        self.name = name
+        self.module_name = module_name
+        self.function_name = function_name
+        self.args = args
+        self.test_arg = test_arg
+        self.condition = condition
+        self.expected_value = expected
+
+    def createCopy(self):
+        return TestCase(self.name, self.module_name, self.function_name, self.args, self.test_arg, self.condition, self.expected_value)
+
+    def generatePyTest(self):
+        pass
+
+def QuestionnaireManualTestCaseGen():
+    module_name = input("Please enter the name of the module you wish to use: ")
+    pass
+
 
 def generate_tests_from_csv(source_file, func_name, csv_file):
     module_name = os.path.splitext(os.path.basename(source_file))[0]

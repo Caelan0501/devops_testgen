@@ -13,6 +13,25 @@ class ValuePartition(ABC):
         self.name = name
         self.datatype = datatype
 
+class PartitionCollection:
+    def __init__(self):
+        self.partitions = []
+        self.partition_count = 0
+        self.numTestCases = 0
+
+    def generateValidInputs(self):
+        pass
+
+    def append(self, partition):
+        assert isinstance(partition, ValuePartition)
+        self.partitions.append(partition)
+        self.partition_count += 1
+
+    def remove(self, partition):
+        assert isinstance(partition, ValuePartition)
+        self.partitions.remove(partition)
+        self.partition_count -= 1
+
 class StringPartition(ValuePartition):
     def __init__(self, name, datatype, min_length = None, max_length = None, allowed_chars = AllowedChars.alnum, forbidden_chars = None):
         super().__init__(name, datatype)
@@ -44,7 +63,7 @@ def main():
 def consoleQuestionnaire():
     source_file = input("What is the source code file?")
     module_name = os.path.splitext(os.path.basename(source_file))[0]
-    function_name = input("What is the funtion name?")
+    function_name = input("What is the function name?")
 
     partitions = []
     num_inputs = input("How many inputs will do you have?")
@@ -126,6 +145,7 @@ def generateStringTestCase(partition, module_name, function_name, inputs_str):
     if partition.forbidden_chars is not None:
         pass
     pass
+
 def generateEnumTestCase(partition, module_name, function_name, inputs_str):
     assert isinstance(partition, EnumPartition)
     #generate test cases for each value

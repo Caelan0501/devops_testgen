@@ -1,0 +1,18 @@
+---
+title: TestCase
+---
+classDiagram
+    class TestCase{
+        +String name
+        +String Module_name
+        +String Function_name
+        +List~name, datatype~ args
+
+        +~name, datatype~ test_arg
+
+        +String condition
+        +String Expected_Value
+
+        +TestCase createCopy()
+        +String generatePytest()
+    }
