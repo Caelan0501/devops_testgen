@@ -2,12 +2,13 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class Console {
+    static Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) {
         System.out.println("This is the Console Platform for Exploration Testing via Console.");
-        Scanner scanner = new Scanner(System.in);
-        boolean quit = false;
         System.out.println("Welcome to my test case generator, Lets start out with a Test case name");
         TestCase tc = new TestCase(scanner.nextLine());
+        boolean quit = false;
         while (!quit) {
             String input = scanner.nextLine();
             input = input.trim();
@@ -57,11 +58,18 @@ public class Console {
                     break;
                 }
                 case "add argument", "aa": {
+                    System.out.println("Here are the arguments: " + tc.get_arguments());
                     System.out.println("What is the type of the argument?");
                     String type = scanner.nextLine();
                     System.out.println("What is the value of the argument?");
                     String value = scanner.nextLine();
-                    tc.add_argument(type, value);
+                    System.out.println("What is the index of the argument?");
+                    int index = scanner.nextInt();
+                    if (index >= tc.getNumberOfArguments()) {
+                        tc.add_argument(value, type);
+                        break;
+                    }
+                    tc.add_argument(value, type, index);
                     break;
                 }
                 case "remove argument", "ra": {
@@ -74,7 +82,7 @@ public class Console {
                     String type = scanner.nextLine();
                     System.out.println("What is the expected value?");
                     String value = scanner.nextLine();
-                    tc.change_expected(type, value);
+                    tc.set_expected(type, value);
 
                 }
                 case "print", "p":{
