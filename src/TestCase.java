@@ -1,28 +1,61 @@
 import java.util.ArrayList;
 import java.lang.String;
 import java.lang.IllegalArgumentException;
+import java.util.EnumSet;
+import java.util.Map;
 
 public class TestCase {
     //Defined Types to use
-    record variable(String value, types type){}
-    enum types{
+    private record variable(String value, Type type){}
+    private enum Type {
         BOOLEAN,
-        BYTE,
-        SHORT,
-        INTEGER,
-        LONG,
-        FLOAT,
-        DOUBLE,
-        CHARACTER,
+        BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE,
         STRING,
+        CHARACTER,
         ENUM
     }
-    enum condition {
-        Equal,
-        NotEqual,
-        Less,
-        Greater
+    private static final EnumSet<Type> numericTypes = EnumSet.of(Type.BYTE, Type.SHORT, Type.INTEGER, Type.LONG, Type.FLOAT, Type.DOUBLE);
+    private enum Assertion {
+        Equal, NotEqual, Null, NotNull, Same, NotSame,
+        True, False,
+        Less, Greater, LessEqual, GreaterEqual, Between,
+        Letter, Digit, Whitespace, Uppercase, Lowercase, Alphanumeric,
+        Contains, NotContains, StartsWith, EndsWith, LengthEqual, Empty, NotEmpty
     }
+
+    //Used to check Compatability between Expected and Assertion Variables
+    private static final Map<Assertion, EnumSet<Type>> ASSERTION_COMPATIBILITY = Map.ofEntries(
+            Map.entry(Assertion.Equal, EnumSet.allOf(Type.class)),
+            Map.entry(Assertion.NotEqual, EnumSet.allOf(Type.class)),
+            Map.entry(Assertion.Null, EnumSet.allOf(Type.class)),
+            Map.entry(Assertion.NotNull, EnumSet.allOf(Type.class)),
+            Map.entry(Assertion.Same, EnumSet.allOf(Type.class)),
+            Map.entry(Assertion.NotSame, EnumSet.allOf(Type.class)),
+
+            Map.entry(Assertion.True, EnumSet.of(Type.BOOLEAN)),
+            Map.entry(Assertion.False, EnumSet.of(Type.BOOLEAN)),
+
+            Map.entry(Assertion.Greater, numericTypes),
+            Map.entry(Assertion.Less, numericTypes),
+            Map.entry(Assertion.LessEqual, numericTypes),
+            Map.entry(Assertion.GreaterEqual, numericTypes),
+            Map.entry(Assertion.Between, numericTypes),
+
+            Map.entry(Assertion.Letter, EnumSet.of(Type.CHARACTER)),
+            Map.entry(Assertion.Digit, EnumSet.of(Type.CHARACTER)),
+            Map.entry(Assertion.Whitespace, EnumSet.of(Type.CHARACTER)),
+            Map.entry(Assertion.Uppercase, EnumSet.of(Type.CHARACTER)),
+            Map.entry(Assertion.Lowercase, EnumSet.of(Type.CHARACTER)),
+            Map.entry(Assertion.Alphanumeric, EnumSet.of(Type.CHARACTER)),
+
+            Map.entry(Assertion.Contains, EnumSet.of(Type.STRING)),
+            Map.entry(Assertion.NotContains, EnumSet.of(Type.STRING)),
+            Map.entry(Assertion.StartsWith, EnumSet.of(Type.STRING)),
+            Map.entry(Assertion.EndsWith, EnumSet.of(Type.STRING)),
+            Map.entry(Assertion.LengthEqual, EnumSet.of(Type.STRING)),
+            Map.entry(Assertion.Empty, EnumSet.of(Type.STRING)),
+            Map.entry(Assertion.NotEmpty, EnumSet.of(Type.STRING))
+    );
 
     //Fields
     private String name;
@@ -30,7 +63,7 @@ public class TestCase {
     private String function_name;
     private final ArrayList<variable> arguments;
     private variable expected;
-    private condition assertion;
+    private Assertion assertion;
 
     //Constructors
     TestCase(String name) {
@@ -107,11 +140,26 @@ public class TestCase {
         expected = new variable(value, processType(type));
     }
 
-    public void set_assertion(String value, String type) {
-
+    public void set_assertion(String assertionString) {
+        Assertion assertion = switch (assertionString) {
+            case "true" -> Assertion.True;
+            case "false" -> Assertion.False;
+            case "null" -> Assertion.Null;
+            case "notnull" -> Assertion.NotNull;
+            case "same" -> Assertion.Same;
+            case "notsame" -> Assertion.NotSame;
+            //Add More Here
+            default -> throw new IllegalArgumentException("Invalid assertion string: " + assertionString);
+        };
+        if (expected != null) {
+            validateCompatibility(expected.type,  assertion);
+        }
+        this.assertion = assertion;
     }
 
     //Service Method
+
+    //Rework needed
     public String generateTestCode() {
         //Verify All fields are filled in
         if (name == null) {
@@ -161,19 +209,19 @@ public class TestCase {
 
     //Helper Functions
     //Converts Strings to the enum identifier
-    private types processType(String type) {
+    private Type processType(String type) {
         type = type.toLowerCase();
         return switch(type) {
-            case "boolean" -> types.BOOLEAN;
-            case "byte" -> types.BYTE;
-            case "short" -> types.SHORT;
-            case "int", "integer" -> types.INTEGER;
-            case "long" -> types.LONG;
-            case "float" -> types.FLOAT;
-            case "double" -> types.DOUBLE;
-            case "character", "char" -> types.CHARACTER;
-            case "string", "str" -> types.STRING;
-            case "enum" -> types.ENUM;
+            case "boolean" -> Type.BOOLEAN;
+            case "byte" -> Type.BYTE;
+            case "short" -> Type.SHORT;
+            case "int", "integer" -> Type.INTEGER;
+            case "long" -> Type.LONG;
+            case "float" -> Type.FLOAT;
+            case "double" -> Type.DOUBLE;
+            case "character", "char" -> Type.CHARACTER;
+            case "string", "str" -> Type.STRING;
+            case "enum" -> Type.ENUM;
             default -> throw new IllegalArgumentException("Unsupported type: " + type);
         };
     }
@@ -188,5 +236,13 @@ public class TestCase {
             throw new IllegalArgumentException("Name must not contain spaces.");
         }
     }
-}
 
+    //Check Usability
+    //Function helps validate Compatability between the expected type and the assertion given.
+    private void validateCompatibility(Type type, Assertion assertion) {
+        EnumSet<Type> compatibleTypes = ASSERTION_COMPATIBILITY.getOrDefault(assertion, EnumSet.noneOf(Type.class));
+        if (!compatibleTypes.contains(type)) {
+            throw new IllegalArgumentException("Assertion " + assertion + " not valid for type " + type);
+        }
+    }
+}

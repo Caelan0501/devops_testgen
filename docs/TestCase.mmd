@@ -3,16 +3,17 @@ title: TestCase
 ---
 classDiagram
     class TestCase{
+
         +String name
-        +String Module_name
-        +String Function_name
-        +List~name, datatype~ args
+        +String module_name
+        +String function_name
+        +ArrayList~name, datatype~ args
         +~name, datatype~ test_arg
         +String condition
         +String Expected_Value
 
         +TestCase createCopy()
-        +String generatePytest()
+        +String generateTestCode()
     }
     class TestCaseCollection{
         +String name
@@ -22,4 +23,15 @@ classDiagram
         +RemoveTestCase(Testcase)
     }
 
+    class variable{
+        String value
+        Type type
+    }
+
+    class Type{
+
+    }
+
     TestCaseCollection o-- TestCase
+    variable *-- TestCase
+    Type *-- variable

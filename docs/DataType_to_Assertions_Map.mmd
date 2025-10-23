@@ -1,0 +1,25 @@
+flowchart LR
+    BOOLEAN --> Equal
+    BOOLEAN --> NotEqual
+    subgraph Numerical_assertions
+        BYTE --> Equal
+        SHORT --> Equal
+        INTEGER --> Equal
+        LONG --> Equal
+        FLOAT --> Equal
+        DOUBLE --> Equal
+        BYTE --> NotEqual
+        SHORT --> NotEqual
+        INTEGER --> NotEqual
+        LONG --> NotEqual
+        FLOAT --> NotEqual
+        DOUBLE --> NotEqual
+    end
+    subgraph Alphabetical_assertions
+        CHARACTER --> Equal
+        STRING --> Equal
+        ENUM --> Equal
+        CHARACTER --> NotEqual
+        STRING --> NotEqual
+        ENUM --> NotEqual
+    end
