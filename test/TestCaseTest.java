@@ -4,6 +4,6 @@ public class TestCaseTest {
 
     @Test
     void ConstructorTestDefault() {
-        TestCase tc = new TestCase("Testcase");
+        TestCase tc = new TestCase();
     }
 }

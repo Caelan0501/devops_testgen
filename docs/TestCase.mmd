@@ -3,18 +3,33 @@ title: TestCase
 ---
 classDiagram
     class TestCase{
+        - EnumSet<Type> numericTypes <<static>>
+        - Map ASSERTION_COMPATIBILITY <<static>>
+        - String name
+        - String module_name
+        - String function_name
+        - ArrayList~variable~ arguments
+        - variable expected
+        - Assertion assertion
 
-        +String name
-        +String module_name
-        +String function_name
-        +ArrayList~name, datatype~ args
-        +~name, datatype~ test_arg
-        +String condition
-        +String Expected_Value
-
-        +TestCase createCopy()
-        +String generateTestCode()
+        + TestCase()
+        + TestCase(TestCase testCase)
+        + set_name(String name)
+        + set_module_name(String module_name)
+        + set_function_name(String function_name)
+        + getNumberOfArguments() int
+        + get_arguments() String
+        + add_argument(String value, String type)
+        + add_argument(String value, String type, int index)
+        + remove_argument(int index)
+        + set_expected(String value, String type)
+        + set_assertion(String assertionString)
+        + String generateTestCode() String
+        - processType(String type) Type
+        - VerifyProgrammingTerm(String Term)
+        - ValidateCompatibility(Type type, Assertion assertion)
     }
+
     class TestCaseCollection{
         +String name
         +List~TestCase~ testcases
@@ -24,14 +39,58 @@ classDiagram
     }
 
     class variable{
+        <<record>>
         String value
         Type type
     }
 
     class Type{
-
+        <<enumeration>>
+        BOOLEAN
+        BYTE
+        SHORT
+        INTEGER
+        LONG
+        FLOAT
+        DOUBLE
+        STRING
+        CHARACTER
+        ENUM
     }
 
-    TestCaseCollection o-- TestCase
-    variable *-- TestCase
-    Type *-- variable
+    class Assertion{
+        <<enumeration>>
+        Equal
+        NotEqual
+        Null
+        NotNull
+        Same
+        NotSame
+        True
+        False
+        Greater
+        Less
+        LessEqual
+        GreaterEqual
+        Between
+        Letter
+        Digit
+        Whitespace
+        Uppercase
+        Lowercase
+        Alphanumeric
+        Contains
+        NotContains
+        StartsWith
+        EndsWith
+        LengthEqual
+        Empty
+        NotEmpty
+    }
+
+    TestCaseCollection o-- TestCase : contains
+    TestCase *-- variable : contains
+    TestCase *-- Type : defines
+    TestCase *-- Assertion : defines
+    variable o-- Type : uses
+    Assertion o-- Type : applies to

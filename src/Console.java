@@ -1,13 +1,15 @@
+import jdk.jshell.spi.ExecutionControl;
+
 import java.util.Objects;
 import java.util.Scanner;
 
 public class Console {
     static Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionControl.NotImplementedException {
         System.out.println("This is the Console Platform for Exploration Testing via Console.");
         System.out.println("Welcome to my test case generator, Lets start out with a Test case name");
-        TestCase tc = new TestCase(scanner.nextLine());
+        TestCase tc = new TestCase();
         boolean quit = false;
         while (!quit) {
             String input = scanner.nextLine();
@@ -22,30 +24,7 @@ public class Console {
                     break;
                 }
                 case "new", "n": {
-                    System.out.println("Do you want to name the test case after the module and function names?");
-                    if(Objects.equals(scanner.nextLine(), "y")) {
-                        System.out.println("What is the name of the module?");
-                        String module = scanner.nextLine();
-                        System.out.println("What is the name of the function?");
-                        String function = scanner.nextLine();
-                        tc = new TestCase(module, function);
-                    }
-                    else {
-                        System.out.println("What is the name of the test?");
-                        String name = scanner.nextLine();
-                        System.out.println("Would you like to add a module and function name?");
-                        if(Objects.equals(scanner.nextLine(), "y")) {
-                            System.out.println("What is the name of the module?");
-                            String module = scanner.nextLine();
-                            System.out.println("What is the name of the function?");
-                            String function = scanner.nextLine();
-                            tc = new TestCase(name, module, function);
-                        }
-                        else {
-                            tc = new TestCase(name);
-                        }
-                    }
-                    break;
+                    tc = new TestCase();
                 }
                 case "set module", "sm": {
                     System.out.println("What is the name of the module?");
