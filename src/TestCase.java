@@ -82,14 +82,26 @@ public class TestCase {
     }
 
     //Accessors
+    public String get_name(){
+        return name;
+    }
+
     public void set_name(String name) {
         VerifyProgrammingTerm(name);
         this.name = name;
     }
 
+    public String get_module_name(){
+        return module_name;
+    }
+
     public void set_module_name(String module_name) {
         VerifyProgrammingTerm(module_name);
         this.module_name = module_name;
+    }
+
+    public String get_function_name(){
+        return function_name;
     }
 
     public void set_function_name(String function_name) {
@@ -123,8 +135,16 @@ public class TestCase {
         arguments.remove(index);
     }
 
+    public String get_expected() {
+        return expected.type.toString() + expected.value;
+    }
+
     public void set_expected(String value, String type) {
         expected = new variable(value, processType(type));
+    }
+
+    public String get_assertion() {
+        return assertion.toString();
     }
 
     public void set_assertion(String assertionString) {
@@ -145,8 +165,6 @@ public class TestCase {
     }
 
     //Service Method
-
-    //Rework needed
     public String generateTestCode() throws ExecutionControl.NotImplementedException {
         //Verify All fields are filled in
         if (name == null) {
@@ -187,44 +205,66 @@ public class TestCase {
             test = switch (expected.type) {
                 case BOOLEAN -> BooleanAssertions(functionCall);
                 case INTEGER, DOUBLE, FLOAT, BYTE, SHORT, LONG -> NumericalAssertions(functionCall);
-                case CHARACTER, STRING, ENUM -> switch (assertion) {
-                    case Equal -> "\t\tassertEqual" + "(" + functionCall + ", " + expected + ")";
-                    case NotEqual -> "\t\tassertNotEqual" + "(" + functionCall + ", " + expected + ")";
-                    default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
-                };
+                case CHARACTER -> CharAssertions(functionCall);
+                case STRING -> StringAssertions(functionCall);
+                default -> throw new ExecutionControl.NotImplementedException(expected.type + "is not Implemented");
             };
         }
-
         return testCode.append(test).toString();
     }
 
     private String UniversalAssertions(String functionCall) {
         return switch (assertion){
-            case Equal -> "\t\tassertEqual" + "(" + functionCall + ", " + expected.value + ")";
-            case NotEqual -> "\t\tassertNotEqual" + "(" + functionCall + ", " + expected.value + ")";
-            case Null -> "\t\tassertNull(" + functionCall + ")";
-            case NotNull -> "\t\tassertNotNull(" + functionCall + ")";
-            case Same -> "\t\tassertSame" + "(" + functionCall + ")";
-            case NotSame -> "\t\tassertNotSame" + "(" + functionCall + ")";
+            case Equal -> String.format("\t\tassertEqual(%s, %s)", functionCall, expected.value);
+            case NotEqual -> String.format("\t\tassertNotEqual(%s, %s)", functionCall, expected.value);
+            case Null -> String.format("\t\tassertNull(%s)", functionCall);
+            case NotNull -> String.format("\t\tassertNotNull(%s)", functionCall);
+            case Same -> String.format("\t\tassertSame(%s,%s)", functionCall, expected.value);
+            case NotSame -> String.format("\t\tassertNotSame(%s, %s)", functionCall, expected.value);
             default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
         };
     }
 
     private String BooleanAssertions(String functionCall){
         return switch (assertion){
-            case True -> "\t\tassertTrue( " + functionCall + ")";
-            case False -> "\t\tassertFalse( " + functionCall + ")";
+            case True -> String.format("\t\tassertTrue(%s)", functionCall);
+            case False -> String.format("\t\tassertFalse(%s)", functionCall);
             default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
         };
     }
 
     private String NumericalAssertions(String functionCall) throws ExecutionControl.NotImplementedException {
         return switch (assertion){
-            case Greater -> "\t\tassertTrue( " + functionCall + " > " + expected.value + ")";
-            case GreaterEqual -> "\t\tassertTrue( " + functionCall + " >= " + expected.value + ")";
-            case Less -> "\t\tassertTrue( " + functionCall + " < " + expected.value + ")";
-            case LessEqual -> "\t\tassertTrue( " + functionCall + " <= " + expected.value + ")";
+            case Greater -> String.format("\t\tassertTrue(%s > %s)", functionCall, expected.value);
+            case GreaterEqual -> String.format("\t\tassertTrue(%s >= %s)", functionCall, expected.value);
+            case Less -> String.format("\t\tassertTrue(%s < %s)", functionCall, expected.value);
+            case LessEqual -> String.format("\t\tassertTrue(%s <= %s)", functionCall, expected.value);
             case Between -> throw new ExecutionControl.NotImplementedException("Between Assertion is not implemented");
+            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
+        };
+    }
+
+    private String CharAssertions(String functionCall) throws ExecutionControl.NotImplementedException {
+        return switch (assertion){
+            case Letter -> String.format("\t\tassertTrue(%s.isLetter())", functionCall);
+            case Digit -> String.format("\t\tassertTrue(%s.isDigit())", functionCall);
+            case Whitespace -> String.format("\t\tassertTrue(%s.isWhitespace())", functionCall);
+            case Uppercase -> String.format("\t\tassertTrue(%s.isUppercase())", functionCall);
+            case Lowercase -> String.format("\t\tassertTrue(%s.isLowercase())", functionCall);
+            case Alphanumeric -> String.format("\t\tassertTrue(%s.isLetterOrDigit())", functionCall);
+            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
+        };
+    }
+
+    private String StringAssertions(String functionCall){
+        return switch (assertion){
+            case Contains -> String.format("\t\tassertTrue(%s.contains(%s))", functionCall, expected.value);
+            case NotContains -> String.format("\t\tassertFalse(%s.contains(%s))", functionCall, expected.value);
+            case StartsWith -> String.format("\t\tassertTrue(%s.startsWith(%s))", functionCall, expected.value);
+            case EndsWith -> String.format("\t\tassertTrue(%s.endsWith(%s))", functionCall, expected.value);
+            case LengthEqual -> String.format("\t\tassertTrue(%s.size() == %s)", functionCall, expected.value);
+            case Empty -> String.format("\t\tassertTrue(%s.isEmpty())", functionCall);
+            case NotEmpty -> String.format("\t\tassertFalse(%s.isEmpty())", functionCall);
             default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
         };
     }
