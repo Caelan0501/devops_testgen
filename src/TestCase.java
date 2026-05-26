@@ -1,5 +1,3 @@
-import jdk.jshell.spi.ExecutionControl;
-
 import java.util.ArrayList;
 import java.lang.String;
 import java.lang.IllegalArgumentException;
@@ -8,25 +6,9 @@ import java.util.Map;
 
 public class TestCase {
     //Defined Types to use
-    private record variable(String value, Type type){}
-    private enum Type {
-        BOOLEAN,
-        BYTE, SHORT, INTEGER, LONG, FLOAT, DOUBLE,
-        STRING,
-        CHARACTER,
-        ENUM
-    }
-    private static final EnumSet<Type> numericTypes = EnumSet.of(Type.BYTE, Type.SHORT, Type.INTEGER, Type.LONG, Type.FLOAT, Type.DOUBLE);
-    private enum Assertion {
-        Equal, NotEqual, Null, NotNull, Same, NotSame,
-        True, False,
-        Less, Greater, LessEqual, GreaterEqual, Between,
-        Letter, Digit, Whitespace, Uppercase, Lowercase, Alphanumeric,
-        Contains, NotContains, StartsWith, EndsWith, LengthEqual, Empty, NotEmpty
-    }
-
+    static final EnumSet<Type> numericTypes = EnumSet.of(Type.BYTE, Type.SHORT, Type.INTEGER, Type.LONG, Type.FLOAT, Type.DOUBLE);
     //Used to check Compatability between Expected and Assertion Variables
-    private static final Map<Assertion, EnumSet<Type>> ASSERTION_COMPATIBILITY = Map.ofEntries(
+    static final Map<Assertion, EnumSet<Type>> ASSERTION_COMPATIBILITY = Map.ofEntries(
             Map.entry(Assertion.Equal, EnumSet.allOf(Type.class)),
             Map.entry(Assertion.NotEqual, EnumSet.allOf(Type.class)),
             Map.entry(Assertion.Null, EnumSet.allOf(Type.class)),
@@ -60,12 +42,12 @@ public class TestCase {
     );
 
     //Fields
-    private String name;
-    private String module_name;
-    private String function_name;
-    private final ArrayList<variable> arguments;
-    private variable expected;
-    private Assertion assertion;
+    String name;
+    String module_name;
+    String function_name;
+    final ArrayList<Variable> arguments;
+    Variable expected;
+    Assertion assertion;
 
     //Constructors
     TestCase() {
@@ -115,19 +97,28 @@ public class TestCase {
 
     public String get_arguments() {
         StringBuilder sb = new StringBuilder();
-        for(variable args : arguments) {
-            sb.append(args.type).append(" ").append(args.value).append(",");
+        for(Variable args : arguments) {
+            sb.append(args.type()).append(" ").append(args.value()).append(",");
         }
-        return sb.substring(0, sb.length() - 1);
+        if (!sb.isEmpty()) {
+            return sb.substring(0, sb.length() - 1);
+        }
+        return sb.toString();
     }
 
     public void add_argument(String value, String type) {
-        variable v = new variable(value, processType(type));
+        add_argument(new Variable(value, processType(type)));
+    }
+
+    void add_argument(Variable v) {
         arguments.add(v);
     }
 
     public void add_argument(String value, String type, int index) {
-        variable v = new variable(value, processType(type));
+        add_argument(new Variable(value, processType(type)),  index);
+    }
+
+    void add_argument(Variable v, int index) {
         arguments.add(index, v);
     }
 
@@ -136,18 +127,42 @@ public class TestCase {
     }
 
     public String get_expected() {
-        return expected.type.toString() + expected.value;
+        if (expected == null) {
+            return "";
+        }
+        return expected.type().toString() + " " + expected.value();
     }
 
     public void set_expected(String value, String type) {
-        expected = new variable(value, processType(type));
+        Type t = processType(type);
+        switch (t) {
+            case BOOLEAN -> value = Boolean.toString(Boolean.parseBoolean(value));
+            case BYTE -> value = Byte.toString(Byte.parseByte(value));
+            case SHORT -> value = Short.toString((short) Short.parseShort(value));
+            case INTEGER -> value = Integer.toString((int) Short.parseShort(value));
+            case LONG -> value = Long.toString((long) Short.parseShort(value));
+            case FLOAT -> value = Float.toString(Float.parseFloat(value));
+            case DOUBLE -> value = Double.toString(Double.parseDouble(value));
+            case CHARACTER -> value = Character.toString(value.charAt(0));
+            case ENUM, STRING -> value = value;
+            default -> throw new IllegalArgumentException("Invalid type " + t);
+        }
+        set_expected(new Variable(value, t));
+    }
+
+    void set_expected(Variable expect) {
+        expected = expect;
     }
 
     public String get_assertion() {
+        if (assertion == null) {
+            return "";
+        }
         return assertion.toString();
     }
 
     public void set_assertion(String assertionString) {
+        assertionString = assertionString.toLowerCase();
         Assertion assertion = switch (assertionString) {
             case "true" -> Assertion.True;
             case "false" -> Assertion.False;
@@ -155,118 +170,22 @@ public class TestCase {
             case "notnull" -> Assertion.NotNull;
             case "same" -> Assertion.Same;
             case "notsame" -> Assertion.NotSame;
+            case "alphanumeric" -> Assertion.Alphanumeric;
+            case "contain" -> Assertion.Contains;
+            case "notcontain" -> Assertion.NotContains;
+            case "startswith" -> Assertion.StartsWith;
+            case "endswith" -> Assertion.EndsWith;
             //Add More Here
             default -> throw new IllegalArgumentException("Invalid assertion string: " + assertionString);
         };
+        set_assertion(assertion);
+    }
+
+    void set_assertion(Assertion assertion) {
         if (expected != null) {
-            validateCompatibility(expected.type,  assertion);
+            validateCompatibility(expected.type(),  assertion);
         }
         this.assertion = assertion;
-    }
-
-    //Service Method
-    public String generateTestCode() throws ExecutionControl.NotImplementedException {
-        //Verify All fields are filled in
-        if (name == null) {
-            throw new IllegalStateException("name is null");
-        }
-        else if (module_name == null) {
-            throw new IllegalStateException("module_name is null");
-        }
-        else if (function_name == null) {
-            throw new IllegalStateException("function_name is null");
-        }
-        else if (expected == null) {
-            throw new IllegalStateException("expected is null");
-        }
-        else if (assertion == null) {
-            throw new IllegalStateException("assertion is null");
-        }
-
-        //Start Process
-        StringBuilder testCode = new StringBuilder();
-        testCode.append("\t@Test\n").append("\tvoid").append(name).append("() {\n");
-
-        //Build FunctionCall
-        StringBuilder argsSb = new StringBuilder();
-        for (int i = 0; i < arguments.size(); i++) {
-            argsSb.append(arguments.get(i).value);
-            if (i < arguments.size() - 1) {
-                argsSb.append(", ");
-            }
-        }
-        String functionCall = module_name + "." + function_name + "(" + argsSb + ")";
-
-        String test;
-        if (assertion == Assertion.Equal || assertion == Assertion.NotEqual || assertion == Assertion.Null || assertion == Assertion.NotNull || assertion == Assertion.Same || assertion == Assertion.NotSame) {
-            test = UniversalAssertions(functionCall);
-        }
-        else {
-            test = switch (expected.type) {
-                case BOOLEAN -> BooleanAssertions(functionCall);
-                case INTEGER, DOUBLE, FLOAT, BYTE, SHORT, LONG -> NumericalAssertions(functionCall);
-                case CHARACTER -> CharAssertions(functionCall);
-                case STRING -> StringAssertions(functionCall);
-                default -> throw new ExecutionControl.NotImplementedException(expected.type + "is not Implemented");
-            };
-        }
-        return testCode.append(test).toString();
-    }
-
-    private String UniversalAssertions(String functionCall) {
-        return switch (assertion){
-            case Equal -> String.format("\t\tassertEqual(%s, %s)", functionCall, expected.value);
-            case NotEqual -> String.format("\t\tassertNotEqual(%s, %s)", functionCall, expected.value);
-            case Null -> String.format("\t\tassertNull(%s)", functionCall);
-            case NotNull -> String.format("\t\tassertNotNull(%s)", functionCall);
-            case Same -> String.format("\t\tassertSame(%s,%s)", functionCall, expected.value);
-            case NotSame -> String.format("\t\tassertNotSame(%s, %s)", functionCall, expected.value);
-            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
-        };
-    }
-
-    private String BooleanAssertions(String functionCall){
-        return switch (assertion){
-            case True -> String.format("\t\tassertTrue(%s)", functionCall);
-            case False -> String.format("\t\tassertFalse(%s)", functionCall);
-            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
-        };
-    }
-
-    private String NumericalAssertions(String functionCall) throws ExecutionControl.NotImplementedException {
-        return switch (assertion){
-            case Greater -> String.format("\t\tassertTrue(%s > %s)", functionCall, expected.value);
-            case GreaterEqual -> String.format("\t\tassertTrue(%s >= %s)", functionCall, expected.value);
-            case Less -> String.format("\t\tassertTrue(%s < %s)", functionCall, expected.value);
-            case LessEqual -> String.format("\t\tassertTrue(%s <= %s)", functionCall, expected.value);
-            case Between -> throw new ExecutionControl.NotImplementedException("Between Assertion is not implemented");
-            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
-        };
-    }
-
-    private String CharAssertions(String functionCall) throws ExecutionControl.NotImplementedException {
-        return switch (assertion){
-            case Letter -> String.format("\t\tassertTrue(%s.isLetter())", functionCall);
-            case Digit -> String.format("\t\tassertTrue(%s.isDigit())", functionCall);
-            case Whitespace -> String.format("\t\tassertTrue(%s.isWhitespace())", functionCall);
-            case Uppercase -> String.format("\t\tassertTrue(%s.isUppercase())", functionCall);
-            case Lowercase -> String.format("\t\tassertTrue(%s.isLowercase())", functionCall);
-            case Alphanumeric -> String.format("\t\tassertTrue(%s.isLetterOrDigit())", functionCall);
-            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
-        };
-    }
-
-    private String StringAssertions(String functionCall){
-        return switch (assertion){
-            case Contains -> String.format("\t\tassertTrue(%s.contains(%s))", functionCall, expected.value);
-            case NotContains -> String.format("\t\tassertFalse(%s.contains(%s))", functionCall, expected.value);
-            case StartsWith -> String.format("\t\tassertTrue(%s.startsWith(%s))", functionCall, expected.value);
-            case EndsWith -> String.format("\t\tassertTrue(%s.endsWith(%s))", functionCall, expected.value);
-            case LengthEqual -> String.format("\t\tassertTrue(%s.size() == %s)", functionCall, expected.value);
-            case Empty -> String.format("\t\tassertTrue(%s.isEmpty())", functionCall);
-            case NotEmpty -> String.format("\t\tassertFalse(%s.isEmpty())", functionCall);
-            default -> throw new IllegalArgumentException("Cannot compare " + functionCall + " with " + expected);
-        };
     }
 
     //Helper Functions

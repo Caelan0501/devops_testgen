@@ -1,5 +1,4 @@
 import jdk.jshell.spi.ExecutionControl;
-
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -65,7 +64,7 @@ public class Console {
 
                 }
                 case "print", "p":{
-                    System.out.println(tc.generateTestCode());
+                    System.out.println("Not Implemented");
                 }
                 default: {
                     System.out.println("Invalid input: Try again.");

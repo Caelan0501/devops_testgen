@@ -88,6 +88,12 @@ classDiagram
         NotEmpty
     }
 
+    class CodeGenerator{
+        String Code
+        String generate_code()
+    }
+    <<interface>> CodeGenerator
+
     TestCaseCollection o-- TestCase : contains
     TestCase *-- variable : contains
     TestCase *-- Type : defines

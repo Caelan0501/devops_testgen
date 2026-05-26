@@ -13,8 +13,16 @@ public class TestCaseCollection {
         testCases.add(tc);
     }
 
-    public void removeTestcase(TestCase tc) {
+    public void RemoveTestcase(TestCase tc) {
         testCases.remove(tc);
+    }
+
+    public TestCase Get_Testcase(int index) {
+        return testCases.get(index);
+    }
+
+    public int size() {
+        return testCases.size();
     }
 
     @Override
